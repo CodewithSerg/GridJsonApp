@@ -23,6 +23,8 @@ struct Result: Decodable, Hashable {
 class GridViewModel: ObservableObject {
     @Published var items = 0..<10
     @Published var results = [Result]()
+  
+    
     init() {
 //        Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { (_) in
 //            items = 0..<7
@@ -48,17 +50,25 @@ class GridViewModel: ObservableObject {
 
 struct ContentView: View {
     @ObservedObject var vm = GridViewModel()
+    @State var searchText = ""
     
     var body: some View {
         NavigationView{
-            
+            VStack{
+            TextField("Search", text: $searchText)
+                .padding()
+                .background(Color(.systemGray4))
+                .padding(.horizontal, 8)
+                .cornerRadius(15)
+                
             ScrollView{
                 LazyVGrid(columns:
                             [GridItem(.flexible(minimum: 50, maximum: 200), spacing: 0, alignment: .top),
                              GridItem(.flexible(minimum: 50, maximum: 200),spacing: 0, alignment: .top),
                              GridItem(.flexible(minimum: 50, maximum: 200),alignment: .top)],  alignment: .leading, spacing: 8, content: {
                               
-                                ForEach(vm.results, id:\.self) { app in
+                                ForEach(vm.results.filter{ ($0.name.contains(searchText)) }
+                                , id:\.self) { app in
                                     AppInfo(app: app)
                                 }
                                
@@ -66,6 +76,7 @@ struct ContentView: View {
                              })
             }
             .navigationTitle("Grid Search")
+        }
         }
     }
 }
