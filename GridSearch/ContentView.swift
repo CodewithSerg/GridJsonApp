@@ -23,7 +23,8 @@ struct Result: Decodable, Hashable {
 class GridViewModel: ObservableObject {
     @Published var items = 0..<10
     @Published var results = [Result]()
-  
+@Published var searchText = ""
+    @Published var isSeaching = false
     
     init() {
 //        Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { (_) in
@@ -50,16 +51,42 @@ class GridViewModel: ObservableObject {
 
 struct ContentView: View {
     @ObservedObject var vm = GridViewModel()
-    @State var searchText = ""
-    
+   // @State var searchText = ""
+   // @StateObject var viewmodel = GridViewModel()
     var body: some View {
         NavigationView{
             VStack{
-            TextField("Search", text: $searchText)
+                
+                TextField("Search", text: $vm.searchText)
                 .padding()
                 .background(Color(.systemGray4))
                 .padding(.horizontal, 8)
                 .cornerRadius(15)
+                    .onTapGesture(perform: {
+                        vm.isSeaching = true
+                    })
+                    .overlay(
+                        HStack{
+                            Spacer()
+                            if vm.isSeaching{
+                                Button(action: {
+                                    vm.searchText = ""
+                                    
+                                    //switchoff keyboard
+//                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                    
+                                }, label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .scaleEffect(1.5)
+                                        .foregroundColor(.gray)
+                                        
+                                        
+                                })
+                            
+                            }
+                        }.padding()
+                    )
+                
                 
             ScrollView{
                 LazyVGrid(columns:
@@ -67,7 +94,7 @@ struct ContentView: View {
                              GridItem(.flexible(minimum: 50, maximum: 200),spacing: 0, alignment: .top),
                              GridItem(.flexible(minimum: 50, maximum: 200),alignment: .top)],  alignment: .leading, spacing: 8, content: {
                               
-                                ForEach(vm.results.filter{ ($0.name.contains(searchText)) }
+                                ForEach(vm.results.filter{ ($0.name.contains(vm.searchText) || vm.searchText.isEmpty) }
                                 , id:\.self) { app in
                                     AppInfo(app: app)
                                 }
@@ -90,6 +117,7 @@ struct ContentView_Previews: PreviewProvider {
 
 struct AppInfo: View {
     var app: Result
+    
     var body: some View {
         VStack(alignment: .leading){
             KFImage(URL(string: app.artworkUrl100))
